@@ -215,7 +215,7 @@
 		temp_gender = gender
 
 	if(temp_gender == FEMALE)
-		. = "ена"
+		. = "на"
 	else
 		. = "ен"
 

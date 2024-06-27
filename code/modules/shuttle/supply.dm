@@ -106,7 +106,7 @@ GLOBAL_LIST_INIT(cargo_shuttle_leave_behind_typecache, typecacheof(list(
 /obj/docking_port/mobile/supply/initiate_docking()
 	if(getDockedId() == "supply_away") // Buy when we leave home.
 		buy()
-		request_mail()
+		create_mail()
 	. = ..() // Fly/enter transit.
 	if(. != DOCKING_SUCCESS)
 		return
@@ -297,23 +297,24 @@ GLOBAL_LIST_INIT(cargo_shuttle_leave_behind_typecache, typecacheof(list(
 	investigate_log("Shuttle contents sold for [D.account_balance - presale_points] credits. Contents: [ex.exported_atoms ? ex.exported_atoms.Join(",") + "." : "none."] Message: [SSshuttle.centcom_message || "none."]", INVESTIGATE_CARGO)
 
 /*
-	По отбытию шаттла перемещает к себе ящик с письмами с каморки на ЦК
+	Generates a box of mail depending on our exports and imports.
+	Applied in the cargo shuttle sending/arriving, by building the crate if the round is ready to introduce mail based on the economy subsystem.
+	Then, fills the mail crate with mail, by picking applicable crew who can recieve mail at the time to sending.
 */
-/// Requesting mail crate from SSmail subsystem
-/obj/docking_port/mobile/supply/proc/request_mail()
-
+/obj/docking_port/mobile/supply/proc/create_mail()
 	//Early return if there's no mail waiting to prevent taking up a slot.
-	if(!SSmail.mail_waiting)
+	if(!SSeconomy.mail_waiting)
 		return
 
+	//spawn crate
 	var/list/empty_turfs = list()
 	for(var/area/shuttle/shuttle_area as anything in shuttle_areas)
 		for(var/turf/open/floor/shuttle_floor in shuttle_area)
 			if(is_blocked_turf(shuttle_floor))
 				continue
 			empty_turfs += shuttle_floor
-	if(empty_turfs.len)
-		SSmail.send_storage(pick(empty_turfs))
+
+	new /obj/structure/closet/crate/mail/economy(pick(empty_turfs))
 
 #undef GOODY_FREE_SHIPPING_MAX
 #undef CRATE_TAX
